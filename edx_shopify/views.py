@@ -30,9 +30,12 @@ def order_create(request):
     # Record order
     order, created = Order.objects.get_or_create(
         id=data['id'],
-        email=data['customer']['email'],
-        first_name=data['customer']['first_name'],
-        last_name=data['customer']['last_name'])
+        defaults={
+            'email': data['customer']['email'],
+            'first_name': data['customer']['first_name'],
+            'last_name': data['customer']['last_name']
+        }
+    )
 
     # Process order
     if order.status == Order.UNPROCESSED:
