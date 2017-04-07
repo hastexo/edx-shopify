@@ -24,10 +24,6 @@ class ProcessOrder(Task):
                 email = item['properties']['email']
             except KeyError:
                 order_error = True
-                order_item = OrderItem.objects.create(
-                    order = order,
-                    status = OrderItem.ERROR
-                )
                 continue
 
             # Store line item
