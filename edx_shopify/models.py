@@ -16,16 +16,27 @@ class Order(models.Model):
     )
 
     id = models.IntegerField(primary_key=True, editable=False)
-    status = models.IntegerField(choices=STATUS_CHOICES, default=UNPROCESSED)
-    received = models.DateTimeField(default=timezone.now)
     email = models.EmailField()
     first_name = models.CharField(max_length=254)
     last_name = models.CharField(max_length=254)
+    received = models.DateTimeField(default=timezone.now)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=UNPROCESSED)
 
 
 class OrderItem(models.Model):
+    UNPROCESSED = 0
+    PROCESSED = 1
+    ERROR = 2
+
+    STATUS_CHOICES = (
+        (UNPROCESSED, 'Unprocessed'),
+        (PROCESSED, 'Processed'),
+        (ERROR, 'Error'),
+    )
+
     order = models.ForeignKey(Order)
     sku = models.CharField(max_length=254)
     email = models.EmailField()
-    first_name = models.CharField(max_length=254)
-    last_name = models.CharField(max_length=254)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=UNPROCESSED)
+
+    unique_together = ('order', 'sku', 'email')
