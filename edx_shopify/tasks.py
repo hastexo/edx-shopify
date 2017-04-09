@@ -13,8 +13,15 @@ class ProcessOrder(Task):
 
     """
     def run(self, data):
-        # Get the order
         order = Order.objects.get(id=data['id'])
+
+        # If the order is anything but UNPROCESSED, abandon the attempt.
+        if order.status != Order.UNPROCESSED:
+            return
+
+        # Mark the order as being processed.
+        order.status = Order.PROCESSING
+        order.save()
 
         # Process line items
         order_error = False
@@ -43,10 +50,12 @@ class ProcessOrder(Task):
                 except:
                     order_error = True
                     order_item.status = OrderItem.ERROR
+                    order_item.save()
                     continue
 
                 # Mark the item as processed
                 order_item.status = OrderItem.PROCESSED
+                order_item.save()
 
             elif order_item.status == OrderItem.ERROR:
                 order_error = True
@@ -56,3 +65,4 @@ class ProcessOrder(Task):
             order.status = Order.ERROR
         else:
             order.status = Order.PROCESSED
+        order.save()

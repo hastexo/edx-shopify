@@ -39,7 +39,6 @@ def order_create(request):
 
     # Process order
     if order.status == Order.UNPROCESSED:
-        order.status = Order.PROCESSING
         ProcessOrder().apply_async(args=(data,))
 
     return HttpResponse(status=200)
