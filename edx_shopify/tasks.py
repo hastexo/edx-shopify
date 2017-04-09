@@ -21,8 +21,11 @@ class ProcessOrder(Task):
         for item in data['line_items']:
             try:
                 sku = item['sku']
-                email = item['properties']['email']
-            except KeyError:
+                email = next(
+                    p['value'] for p in item['properties']
+                    if p['name'] == 'email'
+                )
+            except KeyError, StopIteration:
                 order_error = True
                 continue
 
