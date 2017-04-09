@@ -15,7 +15,7 @@ class Order(models.Model):
         (ERROR, 'Error'),
     )
 
-    id = models.IntegerField(primary_key=True, editable=False)
+    id = models.BigIntegerField(primary_key=True, editable=False)
     email = models.EmailField()
     first_name = models.CharField(max_length=254)
     last_name = models.CharField(max_length=254)

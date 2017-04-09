@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Order',
             fields=[
-                ('id', models.IntegerField(serialize=False, editable=False, primary_key=True)),
+                ('id', models.BigIntegerField(serialize=False, editable=False, primary_key=True)),
                 ('email', models.EmailField(max_length=254)),
                 ('first_name', models.CharField(max_length=254)),
                 ('last_name', models.CharField(max_length=254)),
