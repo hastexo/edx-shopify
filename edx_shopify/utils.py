@@ -10,10 +10,12 @@ from lms.djangoapps.instructor.enrollment import (
     get_email_params
 )
 
+
 def hmac_is_valid(key, msg, hmac_to_verify):
     hash = hmac.new(str(key), str(msg), hashlib.sha256)
     hmac_calculated = base64.b64encode(hash.digest())
     return hmac.compare_digest(hmac_calculated, hmac_to_verify)
+
 
 def auto_enroll_email(course_id, email):
     """
