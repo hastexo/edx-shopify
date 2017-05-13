@@ -1,4 +1,6 @@
-import hashlib, base64, hmac
+import hashlib
+import base64
+import hmac
 
 from django.core.validators import validate_email
 from django.contrib.auth.models import User
