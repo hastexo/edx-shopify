@@ -32,7 +32,7 @@ class ProcessOrder(Task):
                     p['value'] for p in item['properties']
                     if p['name'] == 'email'
                 )
-            except KeyError, StopIteration:
+            except (KeyError, StopIteration):
                 order_error = True
                 continue
 
