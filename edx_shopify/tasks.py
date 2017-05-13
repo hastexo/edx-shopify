@@ -38,9 +38,9 @@ class ProcessOrder(Task):
 
             # Store line item
             order_item, created = OrderItem.objects.get_or_create(
-                order = order,
-                sku = sku,
-                email = email
+                order=order,
+                sku=sku,
+                email=email
             )
 
             if order_item.status == OrderItem.UNPROCESSED:
