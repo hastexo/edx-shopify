@@ -18,7 +18,7 @@ def order_create(request):
 
     # Process request
     try:
-        hmac  = request.META['HTTP_X_SHOPIFY_HMAC_SHA256']
+        hmac = request.META['HTTP_X_SHOPIFY_HMAC_SHA256']
         shop_domain = request.META['HTTP_X_SHOPIFY_SHOP_DOMAIN']
         data = json.loads(request.body)
     except (KeyError, ValueError):
