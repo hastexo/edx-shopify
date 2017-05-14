@@ -1,4 +1,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/edx-shopify.svg)](https://pypi.python.org/pypi/edx-shopify)
+[![Build Status](https://travis-ci.org/hastexo/edx-shopify.svg?branch=master)](https://travis-ci.org/hastexo/edx-shopify)
+[![codecov](https://codecov.io/gh/hastexo/edx-shopify/branch/master/graph/badge.svg)](https://codecov.io/gh/hastexo/edx-shopify)
+
 
 
 # edX Shopify
