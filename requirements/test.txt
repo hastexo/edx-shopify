@@ -1,0 +1,6 @@
+mock
+coverage
+django-nose
+coveralls
+django-webtest
+tox
