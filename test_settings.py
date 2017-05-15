@@ -26,8 +26,10 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.sites',
     'waffle',
@@ -72,6 +74,14 @@ MICROSITE_TEMPLATE_BACKEND = 'microsite_configuration.backends.filebased.Filebas
 COURSE_KEY_PATTERN = r'(?P<course_key_string>[^/+]+(/|\+)[^/+]+(/|\+)[^/?]+)'
 COURSE_ID_PATTERN = COURSE_KEY_PATTERN.replace('course_key_string',
                                                'course_id')
+COURSE_ENROLLMENT_MODES = {
+    "audit": 1,
+    "verified": 2,
+    "professional": 3,
+    "no-id-professional": 4,
+    "credit": 5,
+    "honor": 6,
+}
 
 ALL_LANGUAGES = ([u"en", u"English"],)
 
