@@ -36,3 +36,10 @@ DATABASES = {
 }
 
 ROOT_URLCONF = 'edx_shopify.urls'
+
+WEBHOOK_SETTINGS = {
+    'edx_shopify': {
+        'shop_domain': 'example.com',
+        'api_key': 'foobar',
+    }
+}
