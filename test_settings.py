@@ -90,4 +90,11 @@ BLOCK_STRUCTURES_SETTINGS = dict(
     TASK_MAX_RETRIES=5,
 )
 
+CELERY_ALWAYS_EAGER = True
+HIGH_PRIORITY_QUEUE = 'edx.core.high'
+DEFAULT_PRIORITY_QUEUE = 'edx.core.default'
+LOW_PRIORITY_QUEUE = 'edx.core.low'
+HIGH_MEM_QUEUE = 'edx.core.high_mem'
+RECALCULATE_GRADES_ROUTING_KEY = LOW_PRIORITY_QUEUE
+
 contracts.disable_all()
