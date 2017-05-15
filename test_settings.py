@@ -60,3 +60,9 @@ WEBHOOK_SETTINGS = {
         'api_key': 'foobar',
     }
 }
+
+FEATURES = {
+    'USE_MICROSITES': False,
+}
+MICROSITE_BACKEND = 'microsite_configuration.backends.filebased.FilebasedMicrositeBackend'  # noqa: E501
+MICROSITE_TEMPLATE_BACKEND = 'microsite_configuration.backends.filebased.FilebasedMicrositeTemplateBackend'  # noqa: E501
