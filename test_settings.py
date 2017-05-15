@@ -34,3 +34,5 @@ DATABASES = {
         'ATOMIC_REQUESTS': True,
     }
 }
+
+ROOT_URLCONF = 'edx_shopify.urls'
