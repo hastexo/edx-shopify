@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/1.8/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
+import contracts
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -72,3 +74,5 @@ COURSE_ID_PATTERN = COURSE_KEY_PATTERN.replace('course_key_string',
                                                'course_id')
 
 ALL_LANGUAGES = ([u"en", u"English"],)
+
+contracts.disable_all()
