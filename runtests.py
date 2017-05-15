@@ -14,6 +14,21 @@ def run_tests(*test_args):
     if not test_args:
         test_args = ['tests']
 
+    # Add Open edX common and LMS Django apps to PYTHONPATH
+    sys.path.append(os.path.join(os.path.dirname(__file__),
+                                 'edx-platform'))
+    for directory in ['common', 'lms']:
+        sys.path.append(os.path.join(os.path.dirname(__file__),
+                                     'edx-platform',
+                                     directory,
+                                     'djangoapps'))
+    for lib in ['xmodule', 'dogstats', 'capa', 'calc', 'chem']:
+        sys.path.append(os.path.join(os.path.dirname(__file__),
+                                     'edx-platform',
+                                     'common',
+                                     'lib',
+                                     lib))
+
     # Run tests
     test_runner = NoseTestSuiteRunner(verbosity=1)
 
