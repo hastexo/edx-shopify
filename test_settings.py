@@ -24,6 +24,23 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'waffle',
+    'openedx.core.djangoapps.site_configuration',
+    'openedx.core.djangoapps.self_paced',
+    'openedx.core.djangoapps.user_api',
+    'openedx.core.djangoapps.content.course_overviews',
+    'openedx.core.djangoapps.content.block_structure',
+    'openedx.core.djangoapps.bookmarks',
+    'student',
+    'milestones',
+    'course_modes',
+    'config_models',
+    'lms.djangoapps.verify_student',
+    'celery_utils',
     'edx_shopify',
 ]
 
