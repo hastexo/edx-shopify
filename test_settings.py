@@ -75,4 +75,13 @@ COURSE_ID_PATTERN = COURSE_KEY_PATTERN.replace('course_key_string',
 
 ALL_LANGUAGES = ([u"en", u"English"],)
 
+XQUEUE_INTERFACE = {
+    "url": "https://sandbox-xqueue.example.com",
+    "django_auth": {
+        "username": "lms",
+        "password": "***REMOVED***"
+    },
+    "basic_auth": ('foo', 'bar'),
+}
+
 contracts.disable_all()
