@@ -84,4 +84,10 @@ XQUEUE_INTERFACE = {
     "basic_auth": ('foo', 'bar'),
 }
 
+BLOCK_STRUCTURES_SETTINGS = dict(
+    COURSE_PUBLISH_TASK_DELAY=30,
+    TASK_DEFAULT_RETRY_DELAY=30,
+    TASK_MAX_RETRIES=5,
+)
+
 contracts.disable_all()
