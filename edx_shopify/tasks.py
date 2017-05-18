@@ -8,26 +8,40 @@ logger = get_task_logger(__name__)
 
 
 class ProcessOrder(Task):
-    """
-    Process order creation event.
+    """Process a newly received order, and enroll learners in courses
+    using their email address.
 
+    On failure, store the order in an ERROR state.
     """
+
+    def __init__(self):
+        """Set up an order as an instance member, so we can manipulate it both
+        from run() and from on_failure().
+        """
+
+        self.order = None
+
     def run(self, data):
+        """Parse input data for line items, and create enrollments.
+
+        On any error, raise the exception in order to be handled by
+        on_failure().
+        """
+
         logger.debug('Processing order data: %s' % data)
-        order = Order.objects.get(id=data['id'])
+        self.order = Order.objects.get(id=data['id'])
 
         # If the order is anything but UNPROCESSED, abandon the attempt.
-        if order.status != Order.UNPROCESSED:
+        if self.order.status != Order.UNPROCESSED:
             logger.warning('Order %s has already '
-                           'been processed, ignoring' % order.id)
+                           'been processed, ignoring' % self.order.id)
             return
 
         # Mark the order as being processed.
-        order.status = Order.PROCESSING
-        order.save()
+        self.order.status = Order.PROCESSING
+        self.order.save()
 
         # Process line items
-        order_error = False
         for item in data['line_items']:
             logger.debug('Processing line item: %s' % item)
             try:
@@ -36,15 +50,14 @@ class ProcessOrder(Task):
                     p['value'] for p in item['properties']
                     if p['name'] == 'email'
                 )
-            except (KeyError, StopIteration):
-                order_error = True
+            except:
                 logger.error('Malformed line item %s in order %s, '
-                             'unable to process' % (item, order.id))
-                continue
+                             'unable to process' % (item, self.order.id))
+                raise
 
             # Store line item
             order_item, created = OrderItem.objects.get_or_create(
-                order=order,
+                order=self.order,
                 sku=sku,
                 email=email
             )
@@ -56,27 +69,30 @@ class ProcessOrder(Task):
                 except:
                     logger.error('Unable to enroll '
                                  '%s in %s' % (email, sku))
-                    order_error = True
-                    order_item.status = OrderItem.ERROR
-                    order_item.save()
-                    continue
+                    raise
 
                 # Mark the item as processed
                 order_item.status = OrderItem.PROCESSED
                 order_item.save()
                 logger.debug('Successfully processed line item '
-                             '%s for order %s' % (item, order.id))
-
-            elif order_item.status == OrderItem.ERROR:
-                order_error = True
+                             '%s for order %s' % (item, self.order.id))
 
         # Mark the order status
-        if order_error:
-            order.status = Order.ERROR
-            logger.error('Failed to fully '
-                         'process order %s' % order.id)
-        else:
-            order.status = Order.PROCESSED
-            logger.error('Successfully processed '
-                         'order %s' % order.id)
-        order.save()
+        self.order.status = Order.PROCESSED
+        logger.error('Successfully processed '
+                     'order %s' % self.order.id)
+        self.order.save()
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Handle the run() method having raised an exception: log an
+        exception stack trace and a prose message, save the order with
+        an ERROR status.
+        """
+
+        logger.error(exc, exc_info=True)
+        logger.error('Failed to fully '
+                     'process order %s '
+                     '(task ID %s)' % (self.order.id,
+                                       task_id))
+        self.order.status = Order.ERROR
+        self.order.save()
