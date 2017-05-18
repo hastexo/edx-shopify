@@ -11,13 +11,14 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 import contracts
 import tempfile
+import os
+
+from uuid import uuid4
 from xmodule.modulestore import prefer_xmodules
 from xmodule.x_module import XModuleMixin
 from xmodule.modulestore.inheritance import InheritanceMixin
 from xmodule.modulestore.edit_info import EditInfoMixin
 from lms.djangoapps.lms_xblock.mixin import LmsBlockMixin
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -119,7 +120,18 @@ RECALCULATE_GRADES_ROUTING_KEY = LOW_PRIORITY_QUEUE
 COMMON_TEST_DATA_ROOT = 'tmp'
 DATA_DIR = tempfile.mkdtemp()
 
-CONTENTSTORE = None
+THIS_UUID = uuid4().hex[:5]
+MONGO_PORT_NUM = int(os.environ.get('EDXAPP_TEST_MONGO_PORT', '27017'))
+MONGO_HOST = os.environ.get('EDXAPP_TEST_MONGO_HOST', 'localhost')
+CONTENTSTORE = {
+    'ENGINE': 'xmodule.contentstore.mongo.MongoContentStore',
+    'DOC_STORE_CONFIG': {
+        'host': MONGO_HOST,
+        'db': 'test_xcontent_{}'.format(THIS_UUID),
+        'port': MONGO_PORT_NUM,
+    }
+}
+
 DOC_STORE_CONFIG = {
     'host': 'localhost',
     'db': 'xmodule',
@@ -159,10 +171,12 @@ MODULESTORE = {
     }
 }
 
-# These are the Mixins that should be added to every XBlock.
-# This should be moved into an XBlock Runtime/Application object
-# once the responsibility of XBlock creation is moved out of modulestore - cpennington
-XBLOCK_MIXINS = (LmsBlockMixin, InheritanceMixin, XModuleMixin, EditInfoMixin)
+# These are the Mixins that should be added to every XBlock.  This
+# should be moved into an XBlock Runtime/Application object once the
+# responsibility of XBlock creation is moved out of modulestore -
+# cpennington
+XBLOCK_MIXINS = (LmsBlockMixin, InheritanceMixin,
+                 XModuleMixin, EditInfoMixin)
 
 # Allow any XBlock in the LMS
 XBLOCK_SELECT_FUNCTION = prefer_xmodules
@@ -204,11 +218,11 @@ EVENT_TRACKING_BACKENDS = {
         'ENGINE': 'eventtracking.backends.routing.RoutingBackend',
         'OPTIONS': {
             'backends': {
-                'segment': {'ENGINE': 'eventtracking.backends.segment.SegmentBackend'}
+                'segment': {'ENGINE': 'eventtracking.backends.segment.SegmentBackend'}  # noqa: E501
             },
             'processors': [
                 {
-                    'ENGINE': 'eventtracking.processors.whitelist.NameWhitelistProcessor',
+                    'ENGINE': 'eventtracking.processors.whitelist.NameWhitelistProcessor',  # noqa: E501
                     'OPTIONS': {
                         'whitelist': []
                     }
