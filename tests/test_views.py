@@ -7,7 +7,6 @@ import hmac
 
 from django.conf import settings
 from django.test import TestCase, Client
-from edx_shopify.models import Order
 
 
 class TestOrderCreation(TestCase):
@@ -39,22 +38,6 @@ class TestOrderCreation(TestCase):
         self.correct_signature = base64.b64encode(correct_hash.digest())
         self.incorrect_signature = base64.b64encode(incorrect_hash.digest())
         self.corrupt_signature = "-%s" % base64.b64encode(correct_hash.digest())[1:]  # noqa: E501
-
-    def test_successful_order_creation(self):
-        response = self.client.post('/shopify/order/create',
-                                    self.raw_payload,
-                                    content_type='application/json',
-                                    HTTP_X_SHOPIFY_HMAC_SHA256=self.correct_signature,  # noqa: E501
-                                    HTTP_X_SHOPIFY_SHOP_DOMAIN='example.com')
-        self.assertEqual(response.status_code, 200)
-
-        order = Order.objects.get(id=self.json_payload['id'])
-        self.assertEqual(order.email,
-                         self.json_payload['customer']['email'])
-        self.assertEqual(order.first_name,
-                         self.json_payload['customer']['first_name'])
-        self.assertEqual(order.last_name,
-                         self.json_payload['customer']['last_name'])
 
     def test_invalid_method_put(self):
         response = self.client.put('/shopify/order/create',

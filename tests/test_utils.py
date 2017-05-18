@@ -1,5 +1,6 @@
-from edx_shopify.utils import hmac_is_valid
+from edx_shopify.utils import hmac_is_valid, auto_enroll_email
 from django.test import TestCase
+from django.http import Http404
 
 
 class SignatureVerificationTest(TestCase):
@@ -22,3 +23,17 @@ class SignatureVerificationTest(TestCase):
 
         for triplet in incorrect_hmac:
             self.assertFalse(hmac_is_valid(*triplet))
+
+
+class EmailEnrollmentTest(TestCase):
+
+    def test_enrollment_failure(self):
+        # Enrolling in a non-existent course (or run) should fail, no
+        # matter whether the user exists or not
+        with self.assertRaises(Http404):
+            auto_enroll_email('course-v1:org+nosuchcourse+run1',
+                              'learner@example.com')
+            auto_enroll_email('course-v1:org+course+nosuchrun',
+                              'learner@example.com')
+            auto_enroll_email('course-v1:org+nosuchcourse+run1',
+                              'johndoe@example.com')
