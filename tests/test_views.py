@@ -1,29 +1,23 @@
 # -*- coding: utf-8 -*-
-import json
-import os
 import hashlib
 import base64
 import hmac
 
 from django.conf import settings
-from django.test import TestCase, Client
+from django.test import Client
+
+from . import JsonPayloadTestCase
 
 
-class TestOrderCreation(TestCase):
+class TestOrderCreation(JsonPayloadTestCase):
 
     def setUp(self):
+        super(TestOrderCreation, self).setUp()
         # Set enforce_csrf_checks=True here because testing must still
         # work (webhooks are explicitly exempted from CSRF protection)
         self.client = Client(enforce_csrf_checks=True)
 
         conf = settings.WEBHOOK_SETTINGS['edx_shopify']
-
-        # Grab an example payload and make it available to test
-        # methods as a raw string and as a JSON dictionary.
-        payload_file = os.path.join(os.path.dirname(__file__),
-                                    'post.json')
-        self.raw_payload = open(payload_file, 'r').read()
-        self.json_payload = json.loads(self.raw_payload)
 
         # Calculate 3 SHA256 hashes over the payload, which the
         # webhook handler must verify and accept or reject: a correct
