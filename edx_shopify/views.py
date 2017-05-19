@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .utils import hmac_is_valid
+from .utils import hmac_is_valid, record_order
 from .models import Order
 from .tasks import ProcessOrder
 
@@ -29,14 +29,7 @@ def order_create(request):
         return HttpResponse(status=403)
 
     # Record order
-    order, created = Order.objects.get_or_create(
-        id=data['id'],
-        defaults={
-            'email': data['customer']['email'],
-            'first_name': data['customer']['first_name'],
-            'last_name': data['customer']['last_name']
-        }
-    )
+    order, created = record_order(data)
 
     # Process order
     if order.status == Order.UNPROCESSED:

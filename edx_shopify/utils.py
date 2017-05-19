@@ -12,11 +12,24 @@ from lms.djangoapps.instructor.enrollment import (
     get_email_params
 )
 
+from .models import Order
+
 
 def hmac_is_valid(key, msg, hmac_to_verify):
     hash = hmac.new(str(key), str(msg), hashlib.sha256)
     hmac_calculated = base64.b64encode(hash.digest())
     return hmac.compare_digest(hmac_calculated, hmac_to_verify)
+
+
+def record_order(data):
+    return Order.objects.get_or_create(
+        id=data['id'],
+        defaults={
+            'email': data['customer']['email'],
+            'first_name': data['customer']['first_name'],
+            'last_name': data['customer']['last_name']
+        }
+    )
 
 
 def auto_enroll_email(course_id, email):
