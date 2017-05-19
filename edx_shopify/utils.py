@@ -12,7 +12,7 @@ from lms.djangoapps.instructor.enrollment import (
     get_email_params
 )
 
-from .models import Order
+from .models import Order, OrderItem
 
 
 def hmac_is_valid(key, msg, hmac_to_verify):
@@ -30,6 +30,37 @@ def record_order(data):
             'last_name': data['customer']['last_name']
         }
     )
+
+
+def process_line_item(order, item):
+    """Process a line item of an order.
+
+    Extract sku and properties.email, create an OrderItem, create an
+    enrollment, and mark the OrderItem as processed. Propagate any
+    errors, to be handled up the stack.
+    """
+
+    # Fetch relevant fields from the item
+    sku = item['sku']
+    email = next(
+        p['value'] for p in item['properties']
+        if p['name'] == 'email'
+    )
+
+    # Store line item, prop
+    order_item, created = OrderItem.objects.get_or_create(
+        order=order,
+        sku=sku,
+        email=email
+    )
+
+    # Create an enrollment for the line item
+    if order_item.status == OrderItem.UNPROCESSED:
+        auto_enroll_email(sku, email)
+
+    # Mark the item as processed
+    order_item.status = OrderItem.PROCESSED
+    order_item.save()
 
 
 def auto_enroll_email(course_id,

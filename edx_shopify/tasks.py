@@ -1,8 +1,8 @@
 from celery import Task
 from celery.utils.log import get_task_logger
 
-from .models import Order, OrderItem
-from .utils import auto_enroll_email
+from .models import Order
+from .utils import process_line_item
 
 logger = get_task_logger(__name__)
 
@@ -43,39 +43,9 @@ class ProcessOrder(Task):
 
         # Process line items
         for item in data['line_items']:
-            logger.debug('Processing line item: %s' % item)
-            try:
-                sku = item['sku']
-                email = next(
-                    p['value'] for p in item['properties']
-                    if p['name'] == 'email'
-                )
-            except:
-                logger.error('Malformed line item %s in order %s, '
-                             'unable to process' % (item, self.order.id))
-                raise
-
-            # Store line item
-            order_item, created = OrderItem.objects.get_or_create(
-                order=self.order,
-                sku=sku,
-                email=email
-            )
-
-            if order_item.status == OrderItem.UNPROCESSED:
-                try:
-                    # Enroll the email in the course
-                    auto_enroll_email(sku, email)
-                except:
-                    logger.error('Unable to enroll '
-                                 '%s in %s' % (email, sku))
-                    raise
-
-                # Mark the item as processed
-                order_item.status = OrderItem.PROCESSED
-                order_item.save()
-                logger.debug('Successfully processed line item '
-                             '%s for order %s' % (item, self.order.id))
+            process_line_item(self.order, item)
+            logger.debug('Successfully processed line item '
+                         '%s for order %s' % (item, self.order.id))
 
         # Mark the order status
         self.order.status = Order.PROCESSED

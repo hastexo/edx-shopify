@@ -1,6 +1,11 @@
-from edx_shopify.utils import hmac_is_valid, record_order, auto_enroll_email
 from django.test import TestCase
 from django.http import Http404
+from django.core.exceptions import ValidationError
+
+from edx_shopify.utils import hmac_is_valid, record_order
+from edx_shopify.utils import auto_enroll_email, process_line_item
+
+from edx_shopify.models import Order
 
 from . import JsonPayloadTestCase
 
@@ -40,6 +45,42 @@ class RecordOrderTest(JsonPayloadTestCase):
         order2, created2 = record_order(self.json_payload)
         self.assertFalse(created2)
         self.assertEqual(order1, order2)
+
+
+class ProcessLineItemTest(TestCase):
+
+    def test_invalid_line_item(self):
+        order = Order()
+        order.id = 41
+        order.save()
+        line_items = [{"sku": "course-v1:org+nosuchcourse+run1"},
+                      {"properties": [{"name": "email",
+                                       "value": "learner@example.com"}]}]
+        for line_item in line_items:
+            with self.assertRaises(KeyError):
+                process_line_item(order, line_item)
+
+    def test_invalid_sku(self):
+        order = Order()
+        order.id = 42
+        order.save()
+        line_items = [{"properties": [{"name": "email",
+                                       "value": "learner@example.com"}],
+                       "sku": "course-v1:org+nosuchcourse+run1"}]
+        for line_item in line_items:
+            with self.assertRaises(Http404):
+                process_line_item(order, line_item)
+
+    def test_invalid_email(self):
+        order = Order()
+        order.id = 43
+        order.save()
+        line_items = [{"properties": [{"name": "email",
+                                       "value": "akjzcdfbgakugbfvkljzgh"}],
+                       "sku": "course-v1:org+course+run1"}]
+        for line_item in line_items:
+            with self.assertRaises(ValidationError):
+                process_line_item(order, line_item)
 
 
 class EmailEnrollmentTest(TestCase):
