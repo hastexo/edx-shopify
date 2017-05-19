@@ -32,7 +32,9 @@ def record_order(data):
     )
 
 
-def auto_enroll_email(course_id, email):
+def auto_enroll_email(course_id,
+                      email,
+                      email_students=False):
     """
     Auto-enroll email in course.
 
@@ -43,17 +45,27 @@ def auto_enroll_email(course_id, email):
 
     course_id = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     course = get_course_by_id(course_id)
-    email_params = get_email_params(course, True, secure=True)
 
-    # Try to find out what language to send the email in.
-    user = None
+    # If we want to notify the newly enrolled student by email, fetch
+    # the required parameters
+    email_params = None
     language = None
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        pass
-    else:
-        language = get_user_email_language(user)
+    if email_students:
+        email_params = get_email_params(course, True, secure=True)
+
+        # Try to find out what language to send the email in.
+        user = None
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            pass
+        else:
+            language = get_user_email_language(user)
 
     # Enroll the email
-    enroll_email(course_id, email, True, True, email_params, language=language)
+    enroll_email(course_id,
+                 email,
+                 auto_enroll=True,
+                 email_students=email_students,
+                 email_params=email_params,
+                 language=language)
