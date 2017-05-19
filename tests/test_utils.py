@@ -1,9 +1,12 @@
+import json
+
 from django.test import TestCase
 from django.http import Http404
 from django.core.exceptions import ValidationError
 
 from edx_shopify.utils import hmac_is_valid, record_order
-from edx_shopify.utils import auto_enroll_email, process_line_item
+from edx_shopify.utils import auto_enroll_email
+from edx_shopify.utils import process_order, process_line_item
 
 from edx_shopify.models import Order
 
@@ -45,6 +48,25 @@ class RecordOrderTest(JsonPayloadTestCase):
         order2, created2 = record_order(self.json_payload)
         self.assertFalse(created2)
         self.assertEqual(order1, order2)
+
+
+class ProcessOrderTest(JsonPayloadTestCase):
+
+    def test_invalid_sku(self):
+        # Make sure the order gets created, and that its ID matches
+        # that in the payload
+        fixup_payload = self.raw_payload.replace("course-v1:org+course+run1",
+                                                 "course-v1:org+nosuchcourse+run1")  # noqa: E501
+        fixup_json_payload = json.loads(fixup_payload)
+        order, created = record_order(fixup_json_payload)
+
+        # Non-existent course should raise a 404
+        with self.assertRaises(Http404):
+            process_order(order, fixup_json_payload)
+
+        # At this stage, the order is still PROCESSING -- it's the
+        # task failure handler's job to set the status to ERROR
+        self.assertEqual(order.status, Order.PROCESSING)
 
 
 class ProcessLineItemTest(TestCase):

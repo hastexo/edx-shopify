@@ -1,6 +1,7 @@
 import hashlib
 import base64
 import hmac
+import logging
 
 from django.core.validators import validate_email
 from django.contrib.auth.models import User
@@ -30,6 +31,31 @@ def record_order(data):
             'last_name': data['customer']['last_name']
         }
     )
+
+
+def process_order(order, data, logger=None):
+    if not logger:
+        logger = logging
+
+    # If the order is anything but UNPROCESSED, abandon the attempt.
+    if order.status != Order.UNPROCESSED:
+        logger.warning('Order %s has already '
+                       'been processed, ignoring' % order.id)
+        return
+
+    # Mark the order as being processed.
+    order.status = Order.PROCESSING
+    order.save()
+
+    # Process line items
+    for item in data['line_items']:
+        process_line_item(order, item)
+        logger.debug('Successfully processed line item '
+                     '%s for order %s' % (item, order.id))
+
+    # Mark the order status
+    order.status = Order.PROCESSED
+    order.save()
 
 
 def process_line_item(order, item):

@@ -2,7 +2,7 @@ from celery import Task
 from celery.utils.log import get_task_logger
 
 from .models import Order
-from .utils import process_line_item
+from .utils import process_order
 
 logger = get_task_logger(__name__)
 
@@ -31,27 +31,9 @@ class ProcessOrder(Task):
         logger.debug('Processing order data: %s' % data)
         self.order = Order.objects.get(id=data['id'])
 
-        # If the order is anything but UNPROCESSED, abandon the attempt.
-        if self.order.status != Order.UNPROCESSED:
-            logger.warning('Order %s has already '
-                           'been processed, ignoring' % self.order.id)
-            return
-
-        # Mark the order as being processed.
-        self.order.status = Order.PROCESSING
-        self.order.save()
-
-        # Process line items
-        for item in data['line_items']:
-            process_line_item(self.order, item)
-            logger.debug('Successfully processed line item '
-                         '%s for order %s' % (item, self.order.id))
-
-        # Mark the order status
-        self.order.status = Order.PROCESSED
+        process_order(self.order, data, logger)
         logger.error('Successfully processed '
                      'order %s' % self.order.id)
-        self.order.save()
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Handle the run() method having raised an exception: log an
