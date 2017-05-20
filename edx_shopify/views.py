@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from .utils import hmac_is_valid, record_order
 from .models import Order
-from .tasks import ProcessOrder
+from .tasks import process
 
 
 @csrf_exempt
@@ -33,6 +33,6 @@ def order_create(request):
 
     # Process order
     if order.status == Order.UNPROCESSED:
-        ProcessOrder().apply_async(args=(data,))
+        process.delay(data)
 
     return HttpResponse(status=200)
