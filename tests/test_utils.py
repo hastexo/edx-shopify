@@ -4,6 +4,12 @@ from django.test import TestCase
 from django.http import Http404
 from django.core.exceptions import ValidationError
 
+from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
+
+# We need this in order to mock.patch get_course_by_id
+from edx_shopify import utils
+
+# We also import these for convenience
 from edx_shopify.utils import hmac_is_valid, record_order
 from edx_shopify.utils import auto_enroll_email
 from edx_shopify.utils import process_order, process_line_item
@@ -11,6 +17,11 @@ from edx_shopify.utils import process_order, process_line_item
 from edx_shopify.models import Order
 
 from . import JsonPayloadTestCase
+
+try:
+    from unittest.mock import Mock, patch
+except ImportError:
+    from mock import Mock, patch
 
 
 class SignatureVerificationTest(TestCase):
@@ -117,3 +128,35 @@ class EmailEnrollmentTest(TestCase):
                               'learner@example.com')
             auto_enroll_email('course-v1:org+nosuchcourse+run1',
                               'johndoe@example.com')
+
+    def test_enrollment_success(self):
+        course_id_string = 'course-v1:org+course+run1'
+        cl = CourseLocator.from_string(course_id_string)
+        bul = BlockUsageLocator(cl, u'course', u'course')
+        course = Mock()
+        course.id = cl
+        course.system = Mock()
+        course.scope_ids = Mock()
+        course.scope_id.user_id = None
+        course.scope_ids.block_type = u'course'
+        course.scope_ids.def_id = bul
+        course.scope_ids.usage_id = bul
+        course.location = bul
+        course.display_name = u'Course - Run 1'
+
+        with patch.object(utils,
+                          'get_course_by_id',
+                          return_value=course) as mock_method:
+            auto_enroll_email(course_id_string,
+                              'johndoe@example.com',
+                              send_email=False)
+            mock_method.assert_called_once_with(cl)
+
+        # email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501
+        #                 'course_about_url': u'https://localhost:8000/courses/course-v1:org+course+run1/about',  # noqa: E501
+        #                 'site_name': 'localhost:8000',
+        #                 'course': course,
+        #                 'is_shib_course': None,
+        #                 'display_name': u'Course - Run 1',
+        #                 'auto_enroll': True,
+        #                 'course_url': u'https://localhost:8000/courses/course-v1:org+course+run1/'}  # noqa: E501
