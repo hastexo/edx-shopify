@@ -45,7 +45,7 @@ class OrderTask(Task):
              max_retries=3,
              soft_time_limit=5,
              base=OrderTask)
-def process(self, data):
+def process(self, data, send_email=False):
     """Parse input data for line items, and create enrollments.
 
     On any error, raise the exception in order to be handled by
@@ -55,4 +55,4 @@ def process(self, data):
     logger.debug('Processing order data: %s' % data)
     self.order = Order.objects.get(id=data['id'])
 
-    process_order(self.order, data, logger)
+    process_order(self.order, data, send_email, logger)

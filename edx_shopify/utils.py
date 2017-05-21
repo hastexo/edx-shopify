@@ -33,7 +33,7 @@ def record_order(data):
     )
 
 
-def process_order(order, data, logger=None):
+def process_order(order, data, send_email=False, logger=None):
     if not logger:
         logger = logging
 
@@ -91,7 +91,7 @@ def process_line_item(order, item):
 
 def auto_enroll_email(course_id,
                       email,
-                      email_students=False):
+                      send_email=False):
     """
     Auto-enroll email in course.
 
@@ -107,7 +107,7 @@ def auto_enroll_email(course_id,
     # the required parameters
     email_params = None
     language = None
-    if email_students:
+    if send_email:
         email_params = get_email_params(course, True, secure=True)
 
         # Try to find out what language to send the email in.
@@ -120,9 +120,9 @@ def auto_enroll_email(course_id,
             language = get_user_email_language(user)
 
     # Enroll the email
-    enroll_email(course_id,
+    enroll_email(locator,
                  email,
                  auto_enroll=True,
-                 email_students=email_students,
+                 email_students=send_email,
                  email_params=email_params,
                  language=language)

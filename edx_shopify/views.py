@@ -31,8 +31,14 @@ def order_create(request):
     # Record order
     order, created = record_order(data)
 
+    send_email = True
+    try:
+        send_email = conf['send_email']
+    except KeyError:
+        pass
+
     # Process order
     if order.status == Order.UNPROCESSED:
-        process.delay(data)
+        process.delay(data, send_email)
 
     return HttpResponse(status=200)
