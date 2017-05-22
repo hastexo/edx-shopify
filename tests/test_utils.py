@@ -80,6 +80,40 @@ class ProcessOrderTest(JsonPayloadTestCase):
 
 class ProcessLineItemTest(MockCourseTestCase):
 
+    def test_valid_single_line_item(self):
+        order = Order()
+        order.id = 40
+        order.save()
+        line_items = [{"properties": [{"name": "email",
+                                       "value": "learner@example.com"}],
+                       "sku": "course-v1:org+course+run1"}]
+        mock_get_course_by_id = Mock(return_value=self.course)
+        mock_get_email_params = Mock(return_value=self.email_params)
+        mock_enroll_email = Mock()
+        for line_item in line_items:
+            with patch.multiple(utils,
+                                get_course_by_id=mock_get_course_by_id,
+                                get_email_params=mock_get_email_params,
+                                enroll_email=mock_enroll_email):
+                process_line_item(order, line_item)
+
+                # Did we mock-fetch the course with the correct locator?
+                mock_get_course_by_id.assert_called_once_with(self.cl)
+
+                # Did we mock-fetch the email params for the course
+                # identified by that locator?
+                mock_get_email_params.assert_called_once_with(self.course,
+                                                              True,
+                                                              secure=True)
+
+                # Did we mock-invoke enroll_email with the correct parameters?
+                mock_enroll_email.assert_called_once_with(self.cl,
+                                                          'learner@example.com',  # noqa: E501
+                                                          auto_enroll=True,
+                                                          email_students=True,
+                                                          email_params=self.email_params,  # noqa: E501
+                                                          language=None)
+
     def test_invalid_line_item(self):
         order = Order()
         order.id = 41
