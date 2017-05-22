@@ -95,7 +95,7 @@ def process_line_item(order, item):
 
 def auto_enroll_email(course_id,
                       email,
-                      send_email=False):
+                      send_email=True):
     """
     Auto-enroll email in course.
 
