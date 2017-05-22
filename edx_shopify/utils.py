@@ -57,6 +57,8 @@ def process_order(order, data, send_email=False, logger=None):
     order.status = Order.PROCESSED
     order.save()
 
+    return order
+
 
 def process_line_item(order, item):
     """Process a line item of an order.
@@ -87,6 +89,8 @@ def process_line_item(order, item):
     # Mark the item as processed
     order_item.status = OrderItem.PROCESSED
     order_item.save()
+
+    return order_item
 
 
 def auto_enroll_email(course_id,
