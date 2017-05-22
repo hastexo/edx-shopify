@@ -12,7 +12,7 @@ from edx_shopify.utils import hmac_is_valid, record_order
 from edx_shopify.utils import auto_enroll_email
 from edx_shopify.utils import process_order, process_line_item
 
-from edx_shopify.models import Order
+from edx_shopify.models import Order, OrderItem
 
 from . import JsonPayloadTestCase, MockCourseTestCase
 
@@ -95,7 +95,7 @@ class ProcessLineItemTest(MockCourseTestCase):
                                 get_course_by_id=mock_get_course_by_id,
                                 get_email_params=mock_get_email_params,
                                 enroll_email=mock_enroll_email):
-                process_line_item(order, line_item)
+                order_item = process_line_item(order, line_item)
 
                 # Did we mock-fetch the course with the correct locator?
                 mock_get_course_by_id.assert_called_once_with(self.cl)
@@ -113,6 +113,13 @@ class ProcessLineItemTest(MockCourseTestCase):
                                                           email_students=True,
                                                           email_params=self.email_params,  # noqa: E501
                                                           language=None)
+
+                # Read back the order item
+                order_item.refresh_from_db()
+                self.assertEqual(order_item.order, order)
+                self.assertEqual(order_item.sku, 'course-v1:org+course+run1')
+                self.assertEqual(order_item.email, 'learner@example.com')
+                self.assertEqual(order_item.status, OrderItem.PROCESSED)
 
     def test_invalid_line_item(self):
         order = Order()
