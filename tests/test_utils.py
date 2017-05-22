@@ -118,18 +118,8 @@ class ProcessLineItemTest(TestCase):
 
 class EmailEnrollmentTest(TestCase):
 
-    def test_enrollment_failure(self):
-        # Enrolling in a non-existent course (or run) should fail, no
-        # matter whether the user exists or not
-        with self.assertRaises(Http404):
-            auto_enroll_email('course-v1:org+nosuchcourse+run1',
-                              'learner@example.com')
-            auto_enroll_email('course-v1:org+course+nosuchrun',
-                              'learner@example.com')
-            auto_enroll_email('course-v1:org+nosuchcourse+run1',
-                              'johndoe@example.com')
-
-    def test_enrollment_success(self):
+    def setUp(self):
+        # Set up a mock course
         course_id_string = 'course-v1:org+course+run1'
         cl = CourseLocator.from_string(course_id_string)
         bul = BlockUsageLocator(cl, u'course', u'course')
@@ -144,19 +134,83 @@ class EmailEnrollmentTest(TestCase):
         course.location = bul
         course.display_name = u'Course - Run 1'
 
-        with patch.object(utils,
-                          'get_course_by_id',
-                          return_value=course) as mock_method:
-            auto_enroll_email(course_id_string,
+        self.course_id_string = course_id_string
+        self.cl = cl
+        self.course = course
+
+        email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501
+                        'course_about_url': u'https://localhost:8000/courses/course-v1:org+course+run1/about',  # noqa: E501
+                        'site_name': 'localhost:8000',
+                        'course': course,
+                        'is_shib_course': None,
+                        'display_name': u'Course - Run 1',
+                        'auto_enroll': True,
+                        'course_url': u'https://localhost:8000/courses/course-v1:org+course+run1/'}  # noqa: E501
+        self.email_params = email_params
+
+    def test_enrollment_failure(self):
+        # Enrolling in a non-existent course (or run) should fail, no
+        # matter whether the user exists or not
+        with self.assertRaises(Http404):
+            auto_enroll_email('course-v1:org+nosuchcourse+run1',
+                              'learner@example.com')
+            auto_enroll_email('course-v1:org+course+nosuchrun',
+                              'learner@example.com')
+            auto_enroll_email('course-v1:org+nosuchcourse+run1',
+                              'johndoe@example.com')
+
+    def test_enrollment_success(self):
+        mock_get_course_by_id = Mock(return_value=self.course)
+        mock_get_email_params = Mock(return_value=self.email_params)
+        mock_enroll_email = Mock()
+        address = 'johndoe@example.com'
+
+        with patch.multiple(utils,
+                            get_course_by_id=mock_get_course_by_id,
+                            get_email_params=mock_get_email_params,
+                            enroll_email=mock_enroll_email):
+            auto_enroll_email(self.course_id_string,
                               'johndoe@example.com',
                               send_email=False)
-            mock_method.assert_called_once_with(cl)
 
-        # email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501
-        #                 'course_about_url': u'https://localhost:8000/courses/course-v1:org+course+run1/about',  # noqa: E501
-        #                 'site_name': 'localhost:8000',
-        #                 'course': course,
-        #                 'is_shib_course': None,
-        #                 'display_name': u'Course - Run 1',
-        #                 'auto_enroll': True,
-        #                 'course_url': u'https://localhost:8000/courses/course-v1:org+course+run1/'}  # noqa: E501
+            # Did we mock-fetch the course with the correct locator?
+            mock_get_course_by_id.assert_called_once_with(self.cl)
+
+            # Did we mock-invoke enroll_email with the correct parameters?
+            mock_enroll_email.assert_called_once_with(self.cl,
+                                                      address,
+                                                      auto_enroll=True,
+                                                      email_students=False,
+                                                      email_params=None,
+                                                      language=None)
+
+    def test_enrollment_success_with_email(self):
+        mock_get_course_by_id = Mock(return_value=self.course)
+        mock_get_email_params = Mock(return_value=self.email_params)
+        mock_enroll_email = Mock()
+        address = 'johndoe@example.com'
+
+        with patch.multiple(utils,
+                            get_course_by_id=mock_get_course_by_id,
+                            get_email_params=mock_get_email_params,
+                            enroll_email=mock_enroll_email):
+            auto_enroll_email(self.course_id_string,
+                              address,
+                              send_email=True)
+
+            # Did we mock-fetch the course with the correct locator?
+            mock_get_course_by_id.assert_called_once_with(self.cl)
+
+            # Did we mock-fetch the email params for the course
+            # identified by that locator?
+            mock_get_email_params.assert_called_once_with(self.course,
+                                                          True,
+                                                          secure=True)
+
+            # Did we mock-invoke enroll_email with the correct parameters?
+            mock_enroll_email.assert_called_once_with(self.cl,
+                                                      address,
+                                                      auto_enroll=True,
+                                                      email_students=True,
+                                                      email_params=self.email_params,  # noqa: E501
+                                                      language=None)

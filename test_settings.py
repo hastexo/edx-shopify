@@ -236,4 +236,8 @@ EVENT_TRACKING_BACKENDS = {
 }
 EVENT_TRACKING_PROCESSORS = []
 
+SITE_NAME = 'localhost:8000'
+
+EDX_ROOT_URL = ''
+
 contracts.disable_all()
