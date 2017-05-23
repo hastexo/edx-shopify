@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.http import Http404
 from django.core.exceptions import ValidationError
 
+from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
+
 # We need this in order to mock.patch get_course_by_id
 from edx_shopify import utils
 
@@ -60,6 +62,51 @@ class RecordOrderTest(JsonPayloadTestCase):
 
 
 class ProcessOrderTest(JsonPayloadTestCase):
+
+    def setUp(self):
+        super(ProcessOrderTest, self).setUp()
+        # Set up a mock course
+        course_id_string = 'course-v1:org+course+run1'
+        cl = CourseLocator.from_string(course_id_string)
+        bul = BlockUsageLocator(cl, u'course', u'course')
+        course = Mock()
+        course.id = cl
+        course.system = Mock()
+        course.scope_ids = Mock()
+        course.scope_id.user_id = None
+        course.scope_ids.block_type = u'course'
+        course.scope_ids.def_id = bul
+        course.scope_ids.usage_id = bul
+        course.location = bul
+        course.display_name = u'Course - Run 1'
+
+        self.course_id_string = course_id_string
+        self.cl = cl
+        self.course = course
+
+        email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501
+                        'course_about_url': u'https://localhost:8000/courses/course-v1:org+course+run1/about',  # noqa: E501
+                        'site_name': 'localhost:8000',
+                        'course': course,
+                        'is_shib_course': None,
+                        'display_name': u'Course - Run 1',
+                        'auto_enroll': True,
+                        'course_url': u'https://localhost:8000/courses/course-v1:org+course+run1/'}  # noqa: E501
+        self.email_params = email_params
+
+    def test_valid_order(self):
+        order, created = record_order(self.json_payload)
+
+        mock_get_course_by_id = Mock(return_value=self.course)
+        mock_get_email_params = Mock(return_value=self.email_params)
+        mock_enroll_email = Mock()
+        with patch.multiple(utils,
+                            get_course_by_id=mock_get_course_by_id,
+                            get_email_params=mock_get_email_params,
+                            enroll_email=mock_enroll_email):
+            process_order(order, self.json_payload)
+
+        self.assertEqual(order.status, Order.PROCESSED)
 
     def test_invalid_sku(self):
         # Make sure the order gets created, and that its ID matches
