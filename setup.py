@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='edx-shopify',
-    version='0.0.1',
+    version='0.0.2',
     description='edX Shopify: integrates Open edX with Shopify',
     url='https://github.com/hastexo/edx-shopify',
     author='hastexo',
