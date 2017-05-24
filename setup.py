@@ -16,7 +16,7 @@ setup(
     author_email='pypi@hastexo.com',
     license='AGPL-3.0',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Intended Audience :: Education',
         'License :: OSI Approved :: GNU Affero General Public License v3',
