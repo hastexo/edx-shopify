@@ -1,8 +1,13 @@
 from django.db import models
 from django.utils import timezone
 
+APP_LABEL = 'edx_shopify'
+
 
 class Order(models.Model):
+    class Meta:
+        app_label = APP_LABEL
+
     UNPROCESSED = 0
     PROCESSING = 1
     PROCESSED = 2
@@ -24,6 +29,9 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    class Meta:
+        app_label = APP_LABEL
+
     UNPROCESSED = 0
     PROCESSED = 1
     ERROR = 2
