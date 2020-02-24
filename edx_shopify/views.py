@@ -24,8 +24,9 @@ def order_create(request):
     except (KeyError, ValueError):
         return HttpResponse(status=400)
 
-    if (not hmac_is_valid(conf['api_key'], request.body, hmac) or
-            conf['shop_domain'] != shop_domain):
+    if ((not hmac_is_valid(conf['api_key'],
+                           request.body,
+                           hmac)) or (conf['shop_domain'] != shop_domain)):
         return HttpResponse(status=403)
 
     # Record order
