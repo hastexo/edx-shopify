@@ -43,7 +43,7 @@ html5lib==0.999
 numpy==1.6.2
 Shapely==1.2.16
 scipy==0.14.0
-bleach==1.4
+bleach>=3.1.1
 git+https://github.com/edx/codejail.git@a320d43ce6b9c93b17636b2491f724d9e433be47#egg=codejail==0.0
 git+https://github.com/edx/nltk.git@2.0.6#egg=nltk==2.0.6
 oauthlib==1.0.3
