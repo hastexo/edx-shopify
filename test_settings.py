@@ -34,12 +34,15 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.humanize',
     'django.contrib.messages',
+    'django.contrib.redirects',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.staticfiles',
+    'djcelery',
     'waffle',
     'openedx.core.djangoapps.site_configuration',
     'openedx.core.djangoapps.self_paced',
@@ -47,14 +50,24 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.content.course_overviews',
     'openedx.core.djangoapps.content.block_structure',
     'openedx.core.djangoapps.bookmarks',
+    'openedx.core.djangoapps.catalog',
+    'openedx.core.djangoapps.dark_lang',
+    'openedx.core.djangoapps.video_pipeline',
+    'openedx.features.course_duration_limits',
+    'openedx.features.content_type_gating',
+    'django_comment_common',
     'student',
     'milestones',
+    'completion',
+    'courseware',
     'course_modes',
     'config_models',
     'lms.djangoapps.verify_student',
     'celery_utils',
     'track',
     'eventtracking.django.apps.EventTrackingConfig',
+    'experiments',
+    'oauth2_provider',
     'edx_shopify',
 ]
 
@@ -80,6 +93,10 @@ FEATURES = {
 }
 MICROSITE_BACKEND = 'microsite_configuration.backends.filebased.FilebasedMicrositeBackend'  # noqa: E501
 MICROSITE_TEMPLATE_BACKEND = 'microsite_configuration.backends.filebased.FilebasedMicrositeTemplateBackend'  # noqa: E501
+
+USAGE_KEY_PATTERN = r'(?P<usage_key_string>(?:i4x://?[^/]+/[^/]+/[^/]+/[^@]+(?:@[^/]+)?)|(?:[^/]+))'  # noqa: E501
+ASSET_KEY_PATTERN = r'(?P<asset_key_string>(?:/?c4x(:/)?/[^/]+/[^/]+/[^/]+/[^@]+(?:@[^/]+)?)|(?:[^/]+))'  # noqa: E501
+USAGE_ID_PATTERN = r'(?P<usage_id>(?:i4x://?[^/]+/[^/]+/[^/]+/[^@]+(?:@[^/]+)?)|(?:[^/]+))'  # noqa: E501
 
 COURSE_KEY_PATTERN = r'(?P<course_key_string>[^/+]+(/|\+)[^/+]+(/|\+)[^/?]+)'
 COURSE_ID_PATTERN = COURSE_KEY_PATTERN.replace('course_key_string',
@@ -116,6 +133,8 @@ DEFAULT_PRIORITY_QUEUE = 'edx.core.default'
 LOW_PRIORITY_QUEUE = 'edx.core.low'
 HIGH_MEM_QUEUE = 'edx.core.high_mem'
 RECALCULATE_GRADES_ROUTING_KEY = LOW_PRIORITY_QUEUE
+POLICY_CHANGE_GRADES_ROUTING_KEY = LOW_PRIORITY_QUEUE
+POLICY_CHANGE_TASK_RATE_LIMIT = '300/h'
 
 COMMON_TEST_DATA_ROOT = 'tmp'
 DATA_DIR = tempfile.mkdtemp()
@@ -239,5 +258,17 @@ EVENT_TRACKING_PROCESSORS = []
 SITE_NAME = 'localhost:8000'
 
 EDX_ROOT_URL = ''
+
+COURSE_MODE_DEFAULTS = {
+    'bulk_sku': None,
+    'currency': 'usd',
+    'description': None,
+    'expiration_datetime': None,
+    'min_price': 0,
+    'name': 'Audit',
+    'sku': None,
+    'slug': 'audit',
+    'suggested_prices': '',
+}
 
 contracts.disable_all()
