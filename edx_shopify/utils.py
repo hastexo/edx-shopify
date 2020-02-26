@@ -5,7 +5,7 @@ import logging
 
 from django.core.validators import validate_email
 from django.contrib.auth.models import User
-from opaque_keys.edx.locator import CourseLocator
+from opaque_keys.edx.keys import CourseKey
 from courseware.courses import get_course_by_id
 from lms.djangoapps.instructor.enrollment import (
     get_user_email_language,
@@ -104,8 +104,8 @@ def auto_enroll_email(course_id,
     # Raises ValidationError if invalid
     validate_email(email)
 
-    locator = CourseLocator.from_string(course_id)
-    course = get_course_by_id(locator)
+    course_id = CourseKey.from_string(course_id)
+    course = get_course_by_id(course_id)
 
     # If we want to notify the newly enrolled student by email, fetch
     # the required parameters
@@ -124,7 +124,7 @@ def auto_enroll_email(course_id,
             language = get_user_email_language(user)
 
     # Enroll the email
-    enroll_email(locator,
+    enroll_email(course_id,
                  email,
                  auto_enroll=True,
                  email_students=send_email,

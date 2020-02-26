@@ -4,7 +4,8 @@ import os
 
 from django.test import TestCase
 
-from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
+from opaque_keys.edx.keys import CourseKey
+from opaque_keys.edx.locator import BlockUsageLocator
 
 try:
     from unittest.mock import Mock
@@ -25,10 +26,10 @@ class ShopifyTestCase(TestCase):
     def setup_course(self):
         # Set up a mock course
         course_id_string = 'course-v1:org+course+run1'
-        cl = CourseLocator.from_string(course_id_string)
-        bul = BlockUsageLocator(cl, u'course', u'course')
+        ck = CourseKey.from_string(course_id_string)
+        bul = BlockUsageLocator(ck, u'course', u'course')
         course = Mock()
-        course.id = cl
+        course.id = ck
         course.system = Mock()
         course.scope_ids = Mock()
         course.scope_id.user_id = None
@@ -39,7 +40,7 @@ class ShopifyTestCase(TestCase):
         course.display_name = u'Course - Run 1'
 
         self.course_id_string = course_id_string
-        self.cl = cl
+        self.ck = ck
         self.course = course
 
         email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501

@@ -122,7 +122,7 @@ class ProcessLineItemTest(ShopifyTestCase):
                 order_item = process_line_item(order, line_item)
 
                 # Did we mock-fetch the course with the correct locator?
-                mock_get_course_by_id.assert_called_once_with(self.cl)
+                mock_get_course_by_id.assert_called_once_with(self.ck)
 
                 # Did we mock-fetch the email params for the course
                 # identified by that locator?
@@ -131,7 +131,7 @@ class ProcessLineItemTest(ShopifyTestCase):
                                                               secure=True)
 
                 # Did we mock-invoke enroll_email with the correct parameters?
-                mock_enroll_email.assert_called_once_with(self.cl,
+                mock_enroll_email.assert_called_once_with(self.ck,
                                                           'learner@example.com',  # noqa: E501
                                                           auto_enroll=True,
                                                           email_students=True,
@@ -210,10 +210,10 @@ class EmailEnrollmentTest(ShopifyTestCase):
                               send_email=False)
 
             # Did we mock-fetch the course with the correct locator?
-            mock_get_course_by_id.assert_called_once_with(self.cl)
+            mock_get_course_by_id.assert_called_once_with(self.ck)
 
             # Did we mock-invoke enroll_email with the correct parameters?
-            mock_enroll_email.assert_called_once_with(self.cl,
+            mock_enroll_email.assert_called_once_with(self.ck,
                                                       address,
                                                       auto_enroll=True,
                                                       email_students=False,
@@ -235,7 +235,7 @@ class EmailEnrollmentTest(ShopifyTestCase):
                               send_email=True)
 
             # Did we mock-fetch the course with the correct locator?
-            mock_get_course_by_id.assert_called_once_with(self.cl)
+            mock_get_course_by_id.assert_called_once_with(self.ck)
 
             # Did we mock-fetch the email params for the course
             # identified by that locator?
@@ -244,7 +244,7 @@ class EmailEnrollmentTest(ShopifyTestCase):
                                                           secure=True)
 
             # Did we mock-invoke enroll_email with the correct parameters?
-            mock_enroll_email.assert_called_once_with(self.cl,
+            mock_enroll_email.assert_called_once_with(self.ck,
                                                       address,
                                                       auto_enroll=True,
                                                       email_students=True,
