@@ -7,10 +7,13 @@ from edx_shopify.models import Order
 from edx_shopify.tasks import process
 from edx_shopify.utils import record_order
 
-from . import JsonPayloadTestCase
+from . import ShopifyTestCase
 
 
-class ProcessOrderTest(JsonPayloadTestCase):
+class ProcessOrderTest(ShopifyTestCase):
+
+    def setUp(self):
+        self.setup_payload()
 
     def test_invalid_sku(self):
         fixup_payload = self.raw_payload.replace("course-v1:org+course+run1",

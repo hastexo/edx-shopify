@@ -4,8 +4,6 @@ from django.test import TestCase
 from django.http import Http404
 from django.core.exceptions import ValidationError
 
-from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
-
 # We need this in order to mock.patch get_course_by_id
 from edx_shopify import utils
 
@@ -16,7 +14,7 @@ from edx_shopify.utils import process_order, process_line_item
 
 from edx_shopify.models import Order, OrderItem
 
-from . import JsonPayloadTestCase, MockCourseTestCase
+from . import ShopifyTestCase
 
 try:
     from unittest.mock import Mock, patch
@@ -46,7 +44,10 @@ class SignatureVerificationTest(TestCase):
             self.assertFalse(hmac_is_valid(*triplet))
 
 
-class RecordOrderTest(JsonPayloadTestCase):
+class RecordOrderTest(ShopifyTestCase):
+
+    def setUp(self):
+        self.setup_payload()
 
     def test_record_order(self):
         # Make sure the order gets created, and that its ID matches
@@ -61,38 +62,11 @@ class RecordOrderTest(JsonPayloadTestCase):
         self.assertEqual(order1, order2)
 
 
-class ProcessOrderTest(JsonPayloadTestCase):
+class ProcessOrderTest(ShopifyTestCase):
 
     def setUp(self):
-        super(ProcessOrderTest, self).setUp()
-        # Set up a mock course
-        course_id_string = 'course-v1:org+course+run1'
-        cl = CourseLocator.from_string(course_id_string)
-        bul = BlockUsageLocator(cl, u'course', u'course')
-        course = Mock()
-        course.id = cl
-        course.system = Mock()
-        course.scope_ids = Mock()
-        course.scope_id.user_id = None
-        course.scope_ids.block_type = u'course'
-        course.scope_ids.def_id = bul
-        course.scope_ids.usage_id = bul
-        course.location = bul
-        course.display_name = u'Course - Run 1'
-
-        self.course_id_string = course_id_string
-        self.cl = cl
-        self.course = course
-
-        email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501
-                        'course_about_url': u'https://localhost:8000/courses/course-v1:org+course+run1/about',  # noqa: E501
-                        'site_name': 'localhost:8000',
-                        'course': course,
-                        'is_shib_course': None,
-                        'display_name': u'Course - Run 1',
-                        'auto_enroll': True,
-                        'course_url': u'https://localhost:8000/courses/course-v1:org+course+run1/'}  # noqa: E501
-        self.email_params = email_params
+        self.setup_payload()
+        self.setup_course()
 
     def test_valid_order(self):
         order, created = record_order(self.json_payload)
@@ -125,7 +99,10 @@ class ProcessOrderTest(JsonPayloadTestCase):
         self.assertEqual(order.status, Order.PROCESSING)
 
 
-class ProcessLineItemTest(MockCourseTestCase):
+class ProcessLineItemTest(ShopifyTestCase):
+
+    def setUp(self):
+        self.setup_course()
 
     def test_valid_single_line_item(self):
         order = Order()
@@ -202,7 +179,10 @@ class ProcessLineItemTest(MockCourseTestCase):
                 process_line_item(order, line_item)
 
 
-class EmailEnrollmentTest(MockCourseTestCase):
+class EmailEnrollmentTest(ShopifyTestCase):
+
+    def setUp(self):
+        self.setup_course()
 
     def test_enrollment_failure(self):
         # Enrolling in a non-existent course (or run) should fail, no

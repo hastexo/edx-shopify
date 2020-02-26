@@ -6,12 +6,10 @@ import hmac
 from django.conf import settings
 from django.test import Client
 
-from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
-
 # We need this in order to mock.patch get_course_by_id
 from edx_shopify import utils
 
-from . import JsonPayloadTestCase
+from . import ShopifyTestCase
 
 try:
     from unittest.mock import Mock, patch
@@ -19,10 +17,11 @@ except ImportError:
     from mock import Mock, patch
 
 
-class TestOrderCreation(JsonPayloadTestCase):
+class TestOrderCreation(ShopifyTestCase):
 
     def setUp(self):
-        super(TestOrderCreation, self).setUp()
+        self.setup_payload()
+
         # Set enforce_csrf_checks=True here because testing must still
         # work (webhooks are explicitly exempted from CSRF protection)
         self.client = Client(enforce_csrf_checks=True)
@@ -44,33 +43,7 @@ class TestOrderCreation(JsonPayloadTestCase):
         self.corrupt_signature = "-%s" % base64.b64encode(correct_hash.digest())[1:]  # noqa: E501
 
         # Set up a mock course
-        course_id_string = 'course-v1:org+course+run1'
-        cl = CourseLocator.from_string(course_id_string)
-        bul = BlockUsageLocator(cl, u'course', u'course')
-        course = Mock()
-        course.id = cl
-        course.system = Mock()
-        course.scope_ids = Mock()
-        course.scope_id.user_id = None
-        course.scope_ids.block_type = u'course'
-        course.scope_ids.def_id = bul
-        course.scope_ids.usage_id = bul
-        course.location = bul
-        course.display_name = u'Course - Run 1'
-
-        self.course_id_string = course_id_string
-        self.cl = cl
-        self.course = course
-
-        email_params = {'registration_url': u'https://localhost:8000/register',  # noqa: E501
-                        'course_about_url': u'https://localhost:8000/courses/course-v1:org+course+run1/about',  # noqa: E501
-                        'site_name': 'localhost:8000',
-                        'course': course,
-                        'is_shib_course': None,
-                        'display_name': u'Course - Run 1',
-                        'auto_enroll': True,
-                        'course_url': u'https://localhost:8000/courses/course-v1:org+course+run1/'}  # noqa: E501
-        self.email_params = email_params
+        self.setup_course()
 
     def test_invalid_method_put(self):
         response = self.client.put('/shopify/order/create',
