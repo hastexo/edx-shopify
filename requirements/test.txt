@@ -47,7 +47,7 @@ html5lib==1.0.1
 jsonfield==2.0.2
 lazy==1.1
 mako==1.0.2
-nltk==3.4
+nltk>=3.4.5
 numpy==1.6.2
 oauthlib==2.1.0
 path.py==8.2.1
